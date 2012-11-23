@@ -12,12 +12,8 @@ SCM_HG_CHAR="${red}${SCM_HG_CHAR}${normal}"
 export MYSQL_PS1="(\u@\h) [\d]> "
 
 case $TERM in
-        xterm*)
-        TITLEBAR="\[\033]0;\w\007\]"
-        ;;
-        *)
-        TITLEBAR=""
-        ;;
+    xterm*) TITLEBAR="\[\033]0;\w\007\]" ;;
+    *) TITLEBAR="" ;;
 esac
 
 PS3=""
@@ -29,21 +25,24 @@ modern_scm_prompt() {
 }
 
 prompt() {
-    my_ps_host="${green}\h${normal}";
+    my_ps_host_master="${yellow}\h${normal}"
+    my_ps_host_other="${green}\h${normal}"
+
+    case "$(hostname -s)" in
+        master) my_ps_host=${my_ps_host_master} ;;
+        *) my_ps_host=${my_ps_host_other} ;;
+    esac
+
     my_ps_user="${orange}\u${normal}";
     my_ps_root="$(color rgb 255 0 0 negative bold)☢\u☢${normal}";
     my_ps_path="${cyan}\w${normal}";
 
     # nice prompt
-    case "`id -u`" in
-        0) PS1="${TITLEBAR}$my_ps_root⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ "
-        ;;
-        *) PS1="${TITLEBAR}$my_ps_user⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ "
-        ;;
+    case "$(id -u)" in
+        0) PS1="${TITLEBAR}$my_ps_root⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ " ;;
+        *) PS1="${TITLEBAR}$my_ps_user⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ " ;;
     esac
 }
 PS2=""
-
-
 
 PROMPT_COMMAND=prompt
