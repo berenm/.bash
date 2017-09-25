@@ -1,3 +1,7 @@
+SCM_GIT_SHOW_DETAILS=false
+SCM_GIT_SHOW_REMOTE_INFO=false
+SCM_GIT_SHOW_CURRENT_USER=false
+
 SCM_THEME_PROMPT_PREFIX=""
 SCM_THEME_PROMPT_SUFFIX=""
 
@@ -39,8 +43,8 @@ prompt() {
 
     # nice prompt
     case "$(id -u)" in
-        0) PS1="${TITLEBAR}$my_ps_root⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ " ;;
-        *) PS1="${TITLEBAR}$my_ps_user⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt)⚡ " ;;
+        0) PS1="${TITLEBAR}$my_ps_root⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt) ";;
+        *) PS1="${TITLEBAR}$my_ps_user⌁$my_ps_host⎓$my_ps_path$(modern_scm_prompt) ";;
     esac
 }
 PS2=""
