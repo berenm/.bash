@@ -6,11 +6,11 @@ function _gog {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  commands="run wine64 wine32 lutris"
+  commands="start lutris wine64 wine32"
   command="${COMP_WORDS[1]}"
 
   case "${command}" in
-    run|wine64|wine32|lutris)
+    start|lutris|wine64|wine32)
       local IFS=$'\n'
       compopt -o filenames
       COMPREPLY=($(compgen -f -- "${cur}"))

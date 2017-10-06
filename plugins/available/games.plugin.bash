@@ -38,7 +38,10 @@ function _games_internal_wine {
     wine*) "$@";;
     *)
       cd "$HOME"
-      EXECUTABLE="$(realpath "$1")"; shift
+      EXECUTABLE="$(type -p "$1")"
+      [ ! -f "$EXECUTABLE" ] && zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@" && return -1 || return -1
+
+      EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
       cd "$(dirname "$EXECUTABLE")"
       export WINEDLLOVERRIDES=xinput1_4,xinput1_3,xinput1_2,xinput1_1,xinput9_1_0=n,b
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_4.dll"
@@ -46,7 +49,7 @@ function _games_internal_wine {
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_2.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_1.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput9_1_0.dll"
-      wine "$EXECUTABLE" "$@"
+      [ -f "$EXECUTABLE" ] && wine "$EXECUTABLE" "$@"
   esac
 }
 
@@ -68,12 +71,32 @@ function _games_internal_wine32 {
   _games_internal_wine "$@"
 }
 
-function _games_run {
+function _games_internal_start {
+  cd "$HOME"
+  EXECUTABLE="$(type -p "$1")"
+  [ ! -f "$EXECUTABLE" ] && zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@" && return -1 || return -1
+
+  EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
+  cd "$(dirname "$EXECUTABLE")"
+
   LD_LIBRARY_PATH="$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/lib/x86_64-linux-gnu"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/usr/lib/x86_64-linux-gnu"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/i386/lib/i386-linux-gnu"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/i386/usr/lib/i386-linux-gnu"
-  firejail --noprofile "--private=$HOME/Games" "--env=LD_LIBRARY_PATH=$LD_LIBRARY_PATH" "$@"
+  export LD_LIBRARY_PATH
+
+  [ -f "$EXECUTABLE" ] && "$EXECUTABLE" "$@"
+}
+
+function _games_start {
+  if [[ "${container}" == "" ]]; then
+    mkdir -p "$HOME/Games/.local/bin"
+    cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
+    chmod +x "$HOME/Games/.local/bin/games"
+    firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-start "$@"
+  else
+    _games_internal_start "$@"
+  fi
 }
 
 function _games_wine64 {
@@ -108,8 +131,8 @@ function _games_lutris {
 function games {
   local command="$1"; shift;
   case $command in
-    run)
-      _games_run "$@"
+    start)
+      _games_start "$@"
       ;;
     lutris)
       _games_lutris "$@"
@@ -127,14 +150,17 @@ case "$0" in
   "${BASH_SOURCE[0]}")
     command="$1"; shift;
     case $command in
+      internal-start)
+        _games_internal_start "$@"
+        ;;
       internal-wine64)
         _games_internal_wine64 "$@"
         ;;
       internal-wine32)
         _games_internal_wine32 "$@"
         ;;
-      run)
-        _games_run "$@"
+      start)
+        _games_start "$@"
         ;;
       lutris)
         _games_lutris "$@"
