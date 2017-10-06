@@ -24,11 +24,29 @@ function _games_internal_wine {
     wineboot -fs
   fi
 
+  [ ! -f "$HOME/Downloads/xinput_x64.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/xinput_x64.dll -P "$HOME/Downloads"
+  [ ! -f "$HOME/Downloads/dinput_x64.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/dinput_x64.dll -P "$HOME/Downloads"
+  [ ! -f "$HOME/Downloads/xinput_x86.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/xinput_x86.dll -P "$HOME/Downloads"
+  [ ! -f "$HOME/Downloads/dinput_x86.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/dinput_x86.dll -P "$HOME/Downloads"
+  [ "$WINEARCH" == "win32" ] && XINPUT=xinput_x86.dll || XINPUT=xinput_x64.dll
+
+  ln -fs "$HOME/Wine" "$(dirname "$(winepath "${STEAM_CLIENT}")")/steamapps/common"
+
   case "$1" in
     galaxy) wine "${GALAXY_CLIENT}" "$@";;
     steam) wine "${STEAM_CLIENT}" "$@";;
     wine*) "$@";;
-    *) cd "$(dirname "$1")" && wine "$@"
+    *)
+      cd "$HOME"
+      EXECUTABLE="$(realpath "$1")"; shift
+      cd "$(dirname "$EXECUTABLE")"
+      export WINEDLLOVERRIDES=xinput1_4,xinput1_3,xinput1_2,xinput1_1,xinput9_1_0=n,b
+      ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_4.dll"
+      ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_3.dll"
+      ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_2.dll"
+      ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_1.dll"
+      ln -fs "$HOME/Downloads/$XINPUT" "./xinput9_1_0.dll"
+      wine "$EXECUTABLE" "$@"
   esac
 }
 
