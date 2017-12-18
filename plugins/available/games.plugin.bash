@@ -103,7 +103,11 @@ function _games_start {
     mkdir -p "$HOME/Games/.local/bin"
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
+    git -C "$HOME/Games" pull --rebase
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-start "$@"
+    git -C "$HOME/Games" add -u
+    git -C "$HOME/Games" commit -m "Update $(date)"
+    git -C "$HOME/Games" push origin master
   else
     _games_internal_start "$@"
   fi
@@ -114,7 +118,11 @@ function _games_wine64 {
     mkdir -p "$HOME/Games/.local/bin"
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
+    git -C "$HOME/Games" pull --rebase
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine64 "$@"
+    git -C "$HOME/Games" add -u
+    git -C "$HOME/Games" commit -m "Update $(date)"
+    git -C "$HOME/Games" push origin master
   else
     _games_internal_wine64 "$@"
   fi
@@ -125,7 +133,11 @@ function _games_wine32 {
     mkdir -p "$HOME/Games/.local/bin"
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
+    git -C "$HOME/Games" pull --rebase
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine32 "$@"
+    git -C "$HOME/Games" add -u
+    git -C "$HOME/Games" commit -m "Update $(date)"
+    git -C "$HOME/Games" push origin master
   else
     _games_internal_wine32 "$@"
   fi
@@ -135,7 +147,11 @@ function _games_lutris {
   mkdir -p "$HOME/Games/.local/bin"
   cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
   chmod +x "$HOME/Games/.local/bin/games"
+  git -C "$HOME/Games" pull --rebase
   firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" /usr/bin/lutris "$@"
+  git -C "$HOME/Games" add -u
+  git -C "$HOME/Games" commit -m "Update $(date)"
+  git -C "$HOME/Games" push origin master
 }
 
 function games {
