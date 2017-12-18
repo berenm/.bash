@@ -39,7 +39,8 @@ function _games_internal_wine {
     *)
       cd "$HOME"
       EXECUTABLE="$(type -p "$1")"
-      [ ! -f "$EXECUTABLE" ] && zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@" && return -1 || return -1
+      EXECUTABLE="${EXECUTABLE:-$1}"
+      [ ! -f "$EXECUTABLE" ] && (zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@"; return -1)
 
       EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
       cd "$(dirname "$EXECUTABLE")"
@@ -49,7 +50,11 @@ function _games_internal_wine {
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_2.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_1.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput9_1_0.dll"
-      [ -f "$EXECUTABLE" ] && wine "$EXECUTABLE" "$@"
+
+      case "$EXECUTABLE" in
+        *.bat) wine cmd /c "$EXECUTABLE" "$@";;
+        *) wine "$EXECUTABLE" "$@";;
+      esac
   esac
 }
 
@@ -74,7 +79,8 @@ function _games_internal_wine32 {
 function _games_internal_start {
   cd "$HOME"
   EXECUTABLE="$(type -p "$1")"
-  [ ! -f "$EXECUTABLE" ] && zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@" && return -1 || return -1
+  EXECUTABLE="${EXECUTABLE:-$1}"
+  [ ! -f "$EXECUTABLE" ] && (zenity --notification --window-icon error --text "Could not find:\n$EXECUTABLE $@"; return -1)
 
   EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
   cd "$(dirname "$EXECUTABLE")"
