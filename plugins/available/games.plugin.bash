@@ -85,10 +85,14 @@ function _games_internal_start {
   EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
   cd "$(dirname "$EXECUTABLE")"
 
-  LD_LIBRARY_PATH="$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/lib/x86_64-linux-gnu"
-  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/usr/lib/x86_64-linux-gnu"
-  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/i386/lib/i386-linux-gnu"
-  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/Steam/.local/share/Steam/ubuntu12_32/steam-runtime/i386/usr/lib/i386-linux-gnu"
+  LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0:/lib/x86_64-linux-gnu/libglib-2.0.so.0"
+  LD_PRELOAD="$LD_PRELOAD:/usr/lib/i386-linux-gnu/libgobject-2.0.so.0:/lib/i386-linux-gnu/libglib-2.0.so.0"
+  export LD_PRELOAD
+
+  LD_LIBRARY_PATH="$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/lib/x86_64-linux-gnu"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/amd64/usr/lib/x86_64-linux-gnu"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/i386/lib/i386-linux-gnu"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/i386/usr/lib/i386-linux-gnu"
   export LD_LIBRARY_PATH
 
   [ -f "$EXECUTABLE" ] && "$EXECUTABLE" "$@"
