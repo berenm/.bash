@@ -45,6 +45,7 @@ function _games_internal_wine {
       EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
       cd "$(dirname "$EXECUTABLE")"
       export WINEDLLOVERRIDES=xinput1_4,xinput1_3,xinput1_2,xinput1_1,xinput9_1_0=n,b
+      [ ! -f "x360ce.ini" ] && cp "$HOME/Downloads/x360ce.ini" "x360ce.ini"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_4.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_3.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_2.dll"
