@@ -52,6 +52,7 @@ function _games_internal_wine {
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_1.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput9_1_0.dll"
 
+      export LANG=fr_FR.UTF-8
       case "$EXECUTABLE" in
         *.bat) wine cmd /c "$EXECUTABLE" "$@";;
         *) wine "$EXECUTABLE" "$@";;
@@ -96,6 +97,7 @@ function _games_internal_start {
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/i386/usr/lib/i386-linux-gnu"
   export LD_LIBRARY_PATH
 
+  export LANG=fr_FR.UTF-8
   [ -f "$EXECUTABLE" ] && "$EXECUTABLE" "$@"
 }
 
