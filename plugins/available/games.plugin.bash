@@ -107,9 +107,11 @@ function _games_start {
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
     git -C "$HOME/Games" pull --rebase
-    xset s off -dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled false
+    dconf write /org/gnome/desktop/session/idle-delay 0
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-start "$@"
-    xset s on +dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled true
+    dconf write /org/gnome/desktop/session/idle-delay 600
     git -C "$HOME/Games" add -u
     git -C "$HOME/Games" commit -m "Update $(date)"
     git -C "$HOME/Games" push origin master
@@ -124,9 +126,11 @@ function _games_wine64 {
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
     git -C "$HOME/Games" pull --rebase
-    xset s off -dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled false
+    dconf write /org/gnome/desktop/session/idle-delay 0
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine64 "$@"
-    xset s on +dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled true
+    dconf write /org/gnome/desktop/session/idle-delay 600
     git -C "$HOME/Games" add -u
     git -C "$HOME/Games" commit -m "Update $(date)"
     git -C "$HOME/Games" push origin master
@@ -141,9 +145,11 @@ function _games_wine32 {
     cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
     chmod +x "$HOME/Games/.local/bin/games"
     git -C "$HOME/Games" pull --rebase
-    xset s off -dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled false
+    dconf write /org/gnome/desktop/session/idle-delay 0
     firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine32 "$@"
-    xset s on +dpms
+    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled true
+    dconf write /org/gnome/desktop/session/idle-delay 600
     git -C "$HOME/Games" add -u
     git -C "$HOME/Games" commit -m "Update $(date)"
     git -C "$HOME/Games" push origin master
@@ -157,9 +163,11 @@ function _games_lutris {
   cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
   chmod +x "$HOME/Games/.local/bin/games"
   git -C "$HOME/Games" pull --rebase
-  xset s off -dpms
+  dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled false
+  dconf write /org/gnome/desktop/session/idle-delay 0
   firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" /usr/bin/lutris "$@"
-  xset s on +dpms
+  dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled true
+  dconf write /org/gnome/desktop/session/idle-delay 600
   git -C "$HOME/Games" add -u
   git -C "$HOME/Games" commit -m "Update $(date)"
   git -C "$HOME/Games" push origin master
