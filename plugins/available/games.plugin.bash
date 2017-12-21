@@ -54,8 +54,8 @@ function _games_internal_wine {
 
       export LANG=fr_FR.UTF-8
       case "$EXECUTABLE" in
-        *.bat) wine cmd /c "$EXECUTABLE" "$@";;
-        *) wine "$EXECUTABLE" "$@";;
+        *.bat) wineserver -k; wine cmd /c "$EXECUTABLE" "$@";;
+        *) wineserver -k; wine "$EXECUTABLE" "$@";;
       esac
   esac
 }
