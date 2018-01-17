@@ -24,6 +24,8 @@ function _games_internal_wine {
     wineboot -fs
   fi
 
+  [ ! -f "$HOME/Downloads/x360ce.zip" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.Web/Files/x360ce.zip -P "$HOME/Downloads"
+  [ ! -f "$HOME/Downloads/x360ce.exe" ] && unzip "$HOME/Downloads/x360ce.zip" -d "$HOME/Downloads"
   [ ! -f "$HOME/Downloads/xinput_x64.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/xinput_x64.dll -P "$HOME/Downloads"
   [ ! -f "$HOME/Downloads/dinput_x64.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/dinput_x64.dll -P "$HOME/Downloads"
   [ ! -f "$HOME/Downloads/xinput_x86.dll" ] && wget https://github.com/x360ce/x360ce/raw/master/x360ce.App/Resources/xinput_x86.dll -P "$HOME/Downloads"
@@ -44,6 +46,7 @@ function _games_internal_wine {
 
       EXECUTABLE="$(realpath "$EXECUTABLE")"; shift
       cd "$(dirname "$EXECUTABLE")"
+
       export WINEDLLOVERRIDES=xinput1_4,xinput1_3,xinput1_2,xinput1_1,xinput9_1_0=n,b
       [ ! -f "x360ce.ini" ] && cp "$HOME/Downloads/x360ce.ini" "x360ce.ini"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_4.dll"
@@ -52,10 +55,14 @@ function _games_internal_wine {
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput1_1.dll"
       ln -fs "$HOME/Downloads/$XINPUT" "./xinput9_1_0.dll"
 
+      if glxinfo | grep 'NVIDIA' -m1 --quiet; then
+        export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
+      fi
+
       export LANG=fr_FR.UTF-8
       case "$EXECUTABLE" in
-        *.bat) wineserver -k; wine cmd /c "$EXECUTABLE" "$@";;
-        *) wineserver -k; wine "$EXECUTABLE" "$@";;
+        *.bat) wine cmd /c "$EXECUTABLE" "$@";;
+        *) wine "$EXECUTABLE" "$@";;
       esac
   esac
 }
@@ -97,26 +104,39 @@ function _games_internal_start {
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/i386/usr/lib/i386-linux-gnu"
   export LD_LIBRARY_PATH
 
+  if glxinfo | grep 'NVIDIA' -m1 --quiet; then
+    export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
+  fi
+
   export LANG=fr_FR.UTF-8
   [ -f "$EXECUTABLE" ] && "$EXECUTABLE" "$@"
 }
 
+function _games_wrapper {
+  GAMES="${GAMES_DIR:-$HOME/Games}"
+  mkdir -p "$GAMES/.local/bin"
+  cp "${BASH_SOURCE[0]}" "$GAMES/.local/bin/games"
+  chmod +x "$GAMES/.local/bin/games"
+  git -C "$GAMES" pull --rebase
+  gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
+  gsettings set org.gnome.desktop.interface enable-animations false
+  gsettings set org.gnome.desktop.session idle-delay 0
+  gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing false
+  xset s off -dpms
+  firejail --noprofile "--private=$GAMES" "--env=PATH=$HOME/.local/bin:$PATH" "$@"
+  gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+  gsettings set org.gnome.desktop.interface enable-animations true
+  gsettings set org.gnome.desktop.session idle-delay 300
+  gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing true
+  xset s on +dpms
+  git -C "$GAMES" add -u
+  git -C "$GAMES" commit -m "Update $(date)"
+  git -C "$GAMES" push origin master
+}
+
 function _games_start {
   if [[ "${container}" == "" ]]; then
-    mkdir -p "$HOME/Games/.local/bin"
-    cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
-    chmod +x "$HOME/Games/.local/bin/games"
-    git -C "$HOME/Games" pull --rebase
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
-    gsettings set org.gnome.desktop.session idle-delay 0
-    xset s off -dpms
-    firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-start "$@"
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
-    gsettings set org.gnome.desktop.session idle-delay 300
-    xset s on +dpms
-    git -C "$HOME/Games" add -u
-    git -C "$HOME/Games" commit -m "Update $(date)"
-    git -C "$HOME/Games" push origin master
+    _games_wrapper games internal-start "$@"
   else
     _games_internal_start "$@"
   fi
@@ -124,20 +144,7 @@ function _games_start {
 
 function _games_wine64 {
   if [[ "${container}" == "" ]]; then
-    mkdir -p "$HOME/Games/.local/bin"
-    cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
-    chmod +x "$HOME/Games/.local/bin/games"
-    git -C "$HOME/Games" pull --rebase
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
-    gsettings set org.gnome.desktop.session idle-delay 0
-    xset s off -dpms
-    firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine64 "$@"
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
-    gsettings set org.gnome.desktop.session idle-delay 300
-    xset s on +dpms
-    git -C "$HOME/Games" add -u
-    git -C "$HOME/Games" commit -m "Update $(date)"
-    git -C "$HOME/Games" push origin master
+    _games_wrapper games internal-wine64 "$@"
   else
     _games_internal_wine64 "$@"
   fi
@@ -145,40 +152,10 @@ function _games_wine64 {
 
 function _games_wine32 {
   if [[ "${container}" == "" ]]; then
-    mkdir -p "$HOME/Games/.local/bin"
-    cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
-    chmod +x "$HOME/Games/.local/bin/games"
-    git -C "$HOME/Games" pull --rebase
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
-    gsettings set org.gnome.desktop.session idle-delay 0
-    xset s off -dpms
-    firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" games internal-wine32 "$@"
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
-    gsettings set org.gnome.desktop.session idle-delay 300
-    xset s on +dpms
-    git -C "$HOME/Games" add -u
-    git -C "$HOME/Games" commit -m "Update $(date)"
-    git -C "$HOME/Games" push origin master
+    _games_wrapper games internal-wine32 "$@"
   else
     _games_internal_wine32 "$@"
   fi
-}
-
-function _games_lutris {
-  mkdir -p "$HOME/Games/.local/bin"
-  cp "${BASH_SOURCE[0]}" "$HOME/Games/.local/bin/games"
-  chmod +x "$HOME/Games/.local/bin/games"
-  git -C "$HOME/Games" pull --rebase
-  gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
-  gsettings set org.gnome.desktop.session idle-delay 0
-  xset s off -dpms
-  firejail --noprofile "--private=$HOME/Games" "--env=PATH=$HOME/.local/bin:$PATH" /usr/bin/lutris "$@"
-  gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
-  gsettings set org.gnome.desktop.session idle-delay 300
-  xset s on +dpms
-  git -C "$HOME/Games" add -u
-  git -C "$HOME/Games" commit -m "Update $(date)"
-  git -C "$HOME/Games" push origin master
 }
 
 function games {
@@ -186,9 +163,6 @@ function games {
   case $command in
     start)
       _games_start "$@"
-      ;;
-    lutris)
-      _games_lutris "$@"
       ;;
     wine64)
       _games_wine64 "$@"
@@ -214,9 +188,6 @@ case "$0" in
         ;;
       start)
         _games_start "$@"
-        ;;
-      lutris)
-        _games_lutris "$@"
         ;;
       wine64)
         _games_wine64 "$@"
